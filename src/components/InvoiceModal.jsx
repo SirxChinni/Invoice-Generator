@@ -1,236 +1,144 @@
-import React, { Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { toPng } from 'html-to-image';
-import { jsPDF } from 'jspdf';
+import React from 'react';
 
-const InvoiceModal = ({
-  isOpen,
-  setIsOpen,
-  invoiceInfo,
-  items,
-  onAddNextInvoice,
-}) => {
-  function closeModal() {
-    setIsOpen(false);
-  }
+const InvoiceModal = ({ isOpen, setIsOpen, invoiceInfo, items, onAddNextInvoice }) => {
+  if (!isOpen) return null;
 
-  const addNextInvoiceHandler = () => {
-    setIsOpen(false);
-    onAddNextInvoice();
-  };
-
-  const SaveAsPDFHandler = () => {
-    const dom = document.getElementById('print');
-    toPng(dom)
-      .then((dataUrl) => {
-        const img = new Image();
-        img.crossOrigin = 'annoymous';
-        img.src = dataUrl;
-        img.onload = () => {
-          // Initialize the PDF.
-          const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'in',
-            format: [5.5, 8.5],
-          });
-
-          // Define reused data
-          const imgProps = pdf.getImageProperties(img);
-          const imageType = imgProps.fileType;
-          const pdfWidth = pdf.internal.pageSize.getWidth();
-
-          // Calculate the number of pages.
-          const pxFullHeight = imgProps.height;
-          const pxPageHeight = Math.floor((imgProps.width * 8.5) / 5.5);
-          const nPages = Math.ceil(pxFullHeight / pxPageHeight);
-
-          // Define pageHeight separately so it can be trimmed on the final page.
-          let pageHeight = pdf.internal.pageSize.getHeight();
-
-          // Create a one-page canvas to split up the full image.
-          const pageCanvas = document.createElement('canvas');
-          const pageCtx = pageCanvas.getContext('2d');
-          pageCanvas.width = imgProps.width;
-          pageCanvas.height = pxPageHeight;
-
-          for (let page = 0; page < nPages; page++) {
-            // Trim the final page to reduce file size.
-            if (page === nPages - 1 && pxFullHeight % pxPageHeight !== 0) {
-              pageCanvas.height = pxFullHeight % pxPageHeight;
-              pageHeight = (pageCanvas.height * pdfWidth) / pageCanvas.width;
-            }
-            // Display the page.
-            const w = pageCanvas.width;
-            const h = pageCanvas.height;
-            pageCtx.fillStyle = 'white';
-            pageCtx.fillRect(0, 0, w, h);
-            pageCtx.drawImage(img, 0, page * pxPageHeight, w, h, 0, 0, w, h);
-
-            // Add the page to the PDF.
-            if (page) pdf.addPage();
-
-            const imgData = pageCanvas.toDataURL(`image/${imageType}`, 1);
-            pdf.addImage(imgData, imageType, 0, 0, pdfWidth, pageHeight);
-          }
-          // Output / Save
-          pdf.save(`invoice-${invoiceInfo.invoiceNumber}.pdf`);
-        };
-      })
-      .catch((error) => {
-        console.error('oops, something went wrong!', error);
-      });
-  };
+  const validItems = items.filter((item) => item.name.trim().length > 0);
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog
-        as="div"
-        className="fixed inset-0 z-10 overflow-y-auto"
-        onClose={closeModal}
-      >
-        <div className="min-h-screen px-4 text-center">
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <Dialog.Overlay className="fixed inset-0 bg-black/50" />
-          </Transition.Child>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 px-4 py-6 backdrop-blur-sm">
+      <div className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+        <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">
+              Invoice preview
+            </p>
+            <h2 className="mt-1 text-lg font-semibold text-zinc-900 dark:text-white">
+              Invoice #{invoiceInfo.invoiceNumber}
+            </h2>
+          </div>
 
-          {/* This element is to trick the browser into centering the modal contents. */}
-          <span
-            className="inline-block h-screen align-middle"
-            aria-hidden="true"
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            className="rounded-full border border-zinc-200 bg-white p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+            aria-label="Close invoice preview"
           >
-            &#8203;
-          </span>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
-          >
-            <div className="my-8 inline-block w-full max-w-md transform overflow-hidden rounded-lg bg-white text-left align-middle shadow-xl transition-all">
-              <div className="p-4" id="print">
-                <h1 className="text-center text-lg font-bold text-gray-900">
-                  INVOICE
-                </h1>
-                <div className="mt-6">
-                  <div className="mb-4 grid grid-cols-2">
-                    <span className="font-bold">Invoice Number:</span>
-                    <span>{invoiceInfo.invoiceNumber}</span>
-                    <span className="font-bold">Cashier:</span>
-                    <span>{invoiceInfo.cashierName}</span>
-                    <span className="font-bold">Customer:</span>
-                    <span>{invoiceInfo.customerName}</span>
-                  </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.8}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
 
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-y border-black/10 text-sm md:text-base">
-                        <th>ITEM</th>
-                        <th className="text-center">QTY</th>
-                        <th className="text-right">PRICE</th>
-                        <th className="text-right">AMOUNT</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items.map((item) => (
-                        <tr key={item.id}>
-                          <td className="w-full">{item.name}</td>
-                          <td className="min-w-[50px] text-center">
-                            {item.qty}
-                          </td>
-                          <td className="min-w-[80px] text-right">
-                            ${Number(item.price).toFixed(2)}
-                          </td>
-                          <td className="min-w-[90px] text-right">
-                            ${Number(item.price * item.qty).toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+        <div className="max-h-[calc(90vh-88px)] overflow-y-auto px-6 py-6 sm:px-8">
+          <div className="flex flex-col gap-6 border-b border-zinc-200 pb-6 dark:border-zinc-800 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                Invoice Generator
+              </h3>
+              <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                Professional invoice summary for billing, review, and download.
+              </p>
+            </div>
 
-                  <div className="mt-4 flex flex-col items-end space-y-2">
-                    <div className="flex w-full justify-between border-t border-black/10 pt-2">
-                      <span className="font-bold">Subtotal:</span>
-                      <span>${invoiceInfo.subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex w-full justify-between">
-                      <span className="font-bold">Discount:</span>
-                      <span>${invoiceInfo.discountRate.toFixed(2)}</span>
-                    </div>
-                    <div className="flex w-full justify-between">
-                      <span className="font-bold">Tax:</span>
-                      <span>${invoiceInfo.taxRate.toFixed(2)}</span>
-                    </div>
-                    <div className="flex w-full justify-between border-t border-black/10 py-2">
-                      <span className="font-bold">Total:</span>
-                      <span className="font-bold">
-                        $
-                        {invoiceInfo.total % 1 === 0
-                          ? invoiceInfo.total
-                          : invoiceInfo.total.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 flex space-x-2 px-4 pb-6">
-                <button
-                  className="flex w-full items-center justify-center space-x-1 rounded-md border border-blue-500 py-2 text-sm text-blue-500 shadow-sm hover:bg-blue-500 hover:text-white"
-                  onClick={SaveAsPDFHandler}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+            <div className="space-y-2 text-sm text-zinc-600 dark:text-zinc-300">
+              <p>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">Date:</span>{' '}
+                {invoiceInfo.date}
+              </p>
+              <p>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">Cashier:</span>{' '}
+                {invoiceInfo.cashierName}
+              </p>
+              <p>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">Customer:</span>{' '}
+                {invoiceInfo.customerName}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
+            <table className="w-full border-collapse text-left text-sm">
+              <thead className="bg-zinc-50 dark:bg-zinc-800/70">
+                <tr className="text-[11px] uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">
+                  <th className="px-4 py-3">Item</th>
+                  <th className="px-4 py-3 text-center">Qty</th>
+                  <th className="px-4 py-3 text-right">Price</th>
+                  <th className="px-4 py-3 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-zinc-900">
+                {validItems.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="border-t border-zinc-100 dark:border-zinc-800"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                  <span>Download</span>
-                </button>
-                <button
-                  onClick={addNextInvoiceHandler}
-                  className="flex w-full items-center justify-center space-x-1 rounded-md bg-blue-500 py-2 text-sm text-white shadow-sm hover:bg-blue-600"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 5l7 7-7 7M5 5l7 7-7 7"
-                    />
-                  </svg>
-                  <span>Next</span>
-                </button>
+                    <td className="px-4 py-3 text-zinc-800 dark:text-zinc-100">
+                      {item.name}
+                    </td>
+                    <td className="px-4 py-3 text-center text-zinc-600 dark:text-zinc-300">
+                      {item.qty}
+                    </td>
+                    <td className="px-4 py-3 text-right text-zinc-600 dark:text-zinc-300">
+                      ${Number(item.price).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium text-zinc-900 dark:text-zinc-100">
+                      ${(Number(item.qty) * Number(item.price)).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-6 ml-auto max-w-sm space-y-3 rounded-2xl bg-zinc-50 p-5 dark:bg-zinc-800/60">
+            <div className="flex items-center justify-between text-sm text-zinc-600 dark:text-zinc-300">
+              <span>Subtotal</span>
+              <span className="tabular-nums">${invoiceInfo.subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-zinc-600 dark:text-zinc-300">
+              <span>Discount</span>
+              <span className="tabular-nums">-${invoiceInfo.discountRate.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-zinc-600 dark:text-zinc-300">
+              <span>Tax</span>
+              <span className="tabular-nums">+${invoiceInfo.taxRate.toFixed(2)}</span>
+            </div>
+            <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
+              <div className="flex items-center justify-between text-base font-semibold text-zinc-900 dark:text-white">
+                <span>Total</span>
+                <span className="tabular-nums">${invoiceInfo.total.toFixed(2)}</span>
               </div>
             </div>
-          </Transition.Child>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-1 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 dark:focus:ring-white dark:focus:ring-offset-zinc-900"
+            >
+              Print / Save PDF
+            </button>
+
+            <button
+              type="button"
+              onClick={onAddNextInvoice}
+              className="rounded-full border border-zinc-200 bg-white px-5 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+            >
+              Next invoice
+            </button>
+          </div>
         </div>
-      </Dialog>
-    </Transition>
+      </div>
+    </div>
   );
 };
 
