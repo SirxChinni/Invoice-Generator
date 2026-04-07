@@ -4,7 +4,11 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        Opensans: "'Open Sans', sans-serif",
+        sans: ['Inter', 'Open Sans', 'sans-serif'],
+        Opensans: ['Open Sans', 'sans-serif'],
+      },
+      boxShadow: {
+        soft: '0 18px 50px rgba(15, 23, 42, 0.10)',
       },
     },
   },
