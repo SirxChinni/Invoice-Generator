@@ -4,6 +4,7 @@ const formatCurrency = (v) => `₹${Number(v || 0).toFixed(2)}`;
 
 const InvoiceField = ({ invoiceInfo }) => {
   const {
+    businessName,
     invoiceNumber,
     cashierName,
     customerName,
@@ -12,79 +13,98 @@ const InvoiceField = ({ invoiceInfo }) => {
     discountRate,
     total,
     date,
+    orderType,
+    paymentMethod,
+    tableNumber,
   } = invoiceInfo;
 
-  const subtotalSafe = Number(subtotal || 0);
-  const discountPercent = subtotalSafe > 0 ? ((Number(discountRate || 0) / subtotalSafe) * 100).toFixed(1) : '0.0';
-  const taxPercent = subtotalSafe > 0 ? ((Number(taxRate || 0) / subtotalSafe) * 100).toFixed(1) : '0.0';
-
   return (
-    <header className="mb-5 overflow-hidden rounded-3xl border border-zinc-200/80 bg-gradient-to-br from-white via-zinc-50 to-emerald-50/60 p-5 shadow-sm dark:border-zinc-800 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-950">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-600 dark:text-emerald-400">
+    <header className="mb-4 border-b border-zinc-200 pb-3 text-xs text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-0.5">
+          {businessName && (
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+              {businessName}
+            </p>
+          )}
+
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
             Invoice
           </p>
-          <p className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
             #{invoiceNumber}
           </p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
             Date:{' '}
-            <span className="font-semibold text-zinc-800 dark:text-zinc-100">
-              {date}
-            </span>
+            <span className="font-medium text-zinc-800 dark:text-zinc-100">{date}</span>
           </p>
         </div>
 
-        <div className="grid min-w-[220px] grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-zinc-200 bg-white/90 px-4 py-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/60">
+        <div className="grid min-w-[240px] grid-cols-2 gap-2 text-right">
+          <div className="rounded-xl bg-zinc-50 px-3 py-2 dark:bg-zinc-900/60">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
               Cashier
             </p>
-            <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+            <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-50">
               {cashierName || '-'}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white/90 px-4 py-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/60">
+          <div className="rounded-xl bg-zinc-50 px-3 py-2 dark:bg-zinc-900/60">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
               Customer
             </p>
-            <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+            <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-50">
               {customerName || '-'}
             </p>
+          </div>
+
+          <div className="rounded-xl bg-zinc-50 px-3 py-2 dark:bg-zinc-900/60">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
+              Order
+            </p>
+            <p className="mt-1 text-sm font-medium capitalize text-zinc-900 dark:text-zinc-50">
+              {orderType || '-'}
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-zinc-50 px-3 py-2 dark:bg-zinc-900/60">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
+              Payment
+            </p>
+            <p className="mt-1 text-sm font-medium uppercase text-zinc-900 dark:text-zinc-50">
+              {paymentMethod || '-'}
+            </p>
+            {tableNumber ? (
+              <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">
+                Table: {tableNumber}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 text-[11px] sm:grid-cols-4">
-        <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-950 dark:ring-zinc-800">
-          <p className="text-zinc-500 dark:text-zinc-400">Subtotal</p>
-          <p className="mt-1 text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
-            {formatCurrency(subtotal)}
-          </p>
-        </div>
-
-        <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-950 dark:ring-zinc-800">
-          <p className="text-zinc-500 dark:text-zinc-400">Discount</p>
-          <p className="mt-1 text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
-            ({discountPercent}%) {formatCurrency(discountRate)}
-          </p>
-        </div>
-
-        <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-950 dark:ring-zinc-800">
-          <p className="text-zinc-500 dark:text-zinc-400">Tax</p>
-          <p className="mt-1 text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
-            ({taxPercent}%) {formatCurrency(taxRate)}
-          </p>
-        </div>
-
-        <div className="rounded-2xl bg-zinc-900 px-4 py-3 shadow-sm ring-1 ring-zinc-900 dark:bg-white dark:text-zinc-900 dark:ring-white">
-          <p className="text-zinc-300 dark:text-zinc-500">Total</p>
-          <p className="mt-1 text-sm font-bold tabular-nums text-white dark:text-zinc-900">
-            {formatCurrency(total)}
-          </p>
-        </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-zinc-600 dark:text-zinc-300">
+        <p className="flex justify-between">
+          <span>Subtotal</span>
+          <span className="tabular-nums">{formatCurrency(subtotal)}</span>
+        </p>
+        <p className="flex justify-between">
+          <span>Discount</span>
+          <span className="tabular-nums">
+            ({((discountRate / (subtotal || 1)) * 100 || 0).toFixed(1)}%) {formatCurrency(discountRate)}
+          </span>
+        </p>
+        <p className="flex justify-between">
+          <span>Tax</span>
+          <span className="tabular-nums">
+            ({((taxRate / (subtotal || 1)) * 100 || 0).toFixed(1)}%) {formatCurrency(taxRate)}
+          </span>
+        </p>
+        <p className="flex justify-between font-semibold text-zinc-900 dark:text-zinc-50">
+          <span>Total</span>
+          <span className="tabular-nums">{formatCurrency(total)}</span>
+        </p>
       </div>
     </header>
   );

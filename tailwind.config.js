@@ -1,16 +1,9 @@
-module.exports = {
+// tailwind.config.js
+export default {
   darkMode: 'class',
-  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    extend: {
-      fontFamily: {
-        sans: ['Inter', 'Open Sans', 'sans-serif'],
-        Opensans: ['Open Sans', 'sans-serif'],
-      },
-      boxShadow: {
-        soft: '0 18px 50px rgba(15, 23, 42, 0.10)',
-      },
-    },
+    extend: {},
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [],
 };

@@ -14,7 +14,7 @@ const InvoiceItem = ({
   const isNameEmpty = !name.trim();
 
   return (
-    <tr className="align-middle transition-colors hover:bg-emerald-50/40 dark:hover:bg-zinc-800/30">
+    <tr className="border-b border-zinc-200/70 align-middle last:border-b-0 dark:border-zinc-800/80">
       <td className="pl-8 pr-5 py-4 align-middle">
         <div className="space-y-1.5">
           <input
@@ -31,7 +31,9 @@ const InvoiceItem = ({
             }`}
           />
           {error && isNameEmpty && (
-            <p className="pl-1 text-xs font-medium text-rose-500">{error}</p>
+            <p className="pl-1 text-xs font-medium text-rose-500">
+              {error}
+            </p>
           )}
         </div>
       </td>
